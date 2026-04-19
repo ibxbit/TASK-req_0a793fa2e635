@@ -41,7 +41,6 @@ vendor/
 
 # Test output
 *.out
-*.test.js
 
 # Docker
 *.pid
@@ -58,19 +57,22 @@ vendor/
 *.dylib
 *.test
 
+# Claude Code memory
+.claude/
+
 # Ignore Go build output
-repo/internal/out_internal.txt
-repo/internal/test_out.txt
-repo/API_tests/test_out.txt
-repo/API_tests/out_API.txt
-repo/API_tests/api_errors.txt
-repo/internal/int_errors.txt
+internal/out_internal.txt
+internal/test_out.txt
+API_tests/test_out.txt
+API_tests/out_API.txt
+API_tests/api_errors.txt
+internal/int_errors.txt
 
 # Ignore Playwright output
-repo/e2e/test-results/
+e2e/test-results/
 
 # Ignore frontend build
-repo/frontend/dist/
+frontend/dist/
 
 # Ignore backend build
-repo/backend/dist/
+backend/dist/
