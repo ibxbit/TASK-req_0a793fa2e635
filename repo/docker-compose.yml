@@ -1,0 +1,160 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: helios_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - helios_mysql_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - helios_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: helios_backend
+    restart: unless-stopped
+    environment:
+      APP_PORT: ${APP_PORT}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      HELIOS_CRYPTO_KEY_PATH: /data/helios-crypto.key
+      HELIOS_CRASH_DIR: /data/crashes
+      HELIOS_COOKIE_SECURE: ${HELIOS_COOKIE_SECURE}
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    volumes:
+      - helios_backend_data:/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - helios_net
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:${APP_PORT}/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: helios_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: http://localhost:${APP_PORT}
+    ports:
+      - "${WEB_PORT}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - helios_net
+
+  # --- Test services (compose profile "test") ---------------------------------
+
+  # Runs the Go unit test suite: internal/ package tests + unit_tests/ package
+  # tests, both part of the helios-backend module rooted at repo root.
+  test-unit:
+    image: golang:1.22-alpine
+    profiles: ["test"]
+    working_dir: /app
+    volumes:
+      - .:/app
+      - helios_gomod_cache:/go/pkg/mod
+    environment:
+      HELIOS_DB_DSN: helios_user:helios_pass@tcp(mysql:3306)/helios_db?parseTime=true&charset=utf8mb4
+      GONOSUMDB: "*"
+    command: sh -c "go test -v -mod=vendor ./internal/... ./unit_tests/..."
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - helios_net
+
+  # Runs the Go API/integration test suite (its own module). The backend must
+  # be healthy first so tests can hit it on the compose network.
+  test-api:
+    image: golang:1.22-alpine
+    profiles: ["test"]
+    working_dir: /app
+    volumes:
+      - ./API_tests:/app
+      - helios_gomod_cache:/go/pkg/mod
+    environment:
+      HELIOS_API_BASE: http://backend:${APP_PORT}/api/v1
+      HELIOS_DB_DSN: helios_user:helios_pass@tcp(mysql:3306)/helios_db?parseTime=true&charset=utf8mb4
+      GONOSUMDB: "*"
+    command: sh -c "go mod download && go test -v ./..."
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - helios_net
+
+  # Runs the frontend Vitest suite inside a throwaway node container so the
+  # host only needs Docker. The src tree is mounted read-only; node_modules
+  # stays in a named volume to keep reruns fast.
+  test-frontend:
+    image: node:20-alpine
+    profiles: ["test"]
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - helios_npm_cache:/root/.npm
+    command: sh -c "npm install --no-audit --no-fund --prefer-offline && npm test"
+    networks:
+      - helios_net
+
+  # Runs the Playwright fullstack E2E suite in a prebuilt image that ships
+  # browsers out of the box. Talks to the compose-network frontend via
+  # http://frontend (nginx → backend:8080). Requires frontend + backend to be
+  # healthy, which compose handles via depends_on.
+  test-e2e:
+    build:
+      context: ./e2e
+      dockerfile: Dockerfile
+    profiles: ["test"]
+    environment:
+      E2E_BASE_URL: http://frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    networks:
+      - helios_net
+
+networks:
+  helios_net:
+    driver: bridge
+
+volumes:
+  helios_mysql_data:
+    driver: local
+  helios_backend_data:
+    driver: local
+  helios_gomod_cache:
+    driver: local
+  helios_npm_cache:
+    driver: local

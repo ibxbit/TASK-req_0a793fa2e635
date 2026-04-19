@@ -1,0 +1,11 @@
+.git
+.gitignore
+*.md
+Dockerfile*
+docker-compose.yml
+.env
+frontend/
+db/
+unit_tests/
+API_tests/
+run_tests.sh
