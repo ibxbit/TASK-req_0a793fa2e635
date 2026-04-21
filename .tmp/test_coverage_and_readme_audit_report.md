@@ -76,7 +76,7 @@ Legend: `TNM` = true no-mock HTTP test, `N` = not covered.
 | `PUT /api/v1/coupons/:id`                  |     yes | TNM  | `repo/API_tests/pricing_mgmt_test.go:140 (TestCoupons_CRUDAndUniqueness)`                                    |
 | `DELETE /api/v1/coupons/:id`               |     yes | TNM  | `repo/API_tests/pricing_mgmt_test.go:140 (defer delete)`                                                     |
 | `GET /api/v1/pricing-rules`                |     yes | TNM  | `repo/API_tests/pricing_mgmt_test.go:192 (TestPricingRules_CRUDWithValidation)`                              |
-| `GET /api/v1/pricing-rules/:id`            |      no | N    | route declared `repo/internal/handlers/pricing_mgmt.go:55`; no direct `/pricing-rules/:id` GET call found    |
+| `GET /api/v1/pricing-rules/:id`            |     yes | TNM  | `repo/API_tests/revisions_test.go:597 (doJSON GET /pricing-rules/:id)`                                       |
 | `POST /api/v1/pricing-rules`               |     yes | TNM  | `repo/API_tests/pricing_mgmt_test.go:192 (TestPricingRules_CRUDWithValidation)`                              |
 | `PUT /api/v1/pricing-rules/:id`            |     yes | TNM  | `repo/API_tests/revisions_test.go:570 (pricing_rule restore setup uses PUT)`                                 |
 | `DELETE /api/v1/pricing-rules/:id`         |     yes | TNM  | `repo/API_tests/pricing_mgmt_test.go:212 (defer delete)`                                                     |
@@ -131,13 +131,12 @@ Legend: `TNM` = true no-mock HTTP test, `N` = not covered.
 ## Coverage Summary
 
 - Total endpoints: **97**.
-- Endpoints with HTTP tests: **95**.
-- Endpoints with true no-mock HTTP tests: **95**.
-- HTTP coverage: **97.94%**.
-- True API coverage: **97.94%**.
+- Endpoints with HTTP tests: **96**.
+- Endpoints with true no-mock HTTP tests: **96**.
+- HTTP coverage: **98.97%**.
+- True API coverage: **98.97%**.
 - Uncovered endpoints:
   - `GET /api/v1/coupons`
-  - `GET /api/v1/pricing-rules/:id`
 
 ## Unit Test Analysis
 
@@ -178,7 +177,7 @@ Legend: `TNM` = true no-mock HTTP test, `N` = not covered.
   - critical security cases covered (spoofed user_id, staff assignment constraints) (`repo/API_tests/pricing_security_test.go:11`, `repo/API_tests/complaints_assign_test.go:12`).
   - revision restore and retention tested, including expiry branch (`repo/API_tests/revisions_test.go:298`).
 - Gaps:
-  - two uncovered read endpoints (listed above).
+  - one uncovered read endpoint (listed above).
   - some important console pages still missing direct frontend unit tests.
 - `run_tests.sh` check:
   - Docker-based orchestration: **OK** (`repo/run_tests.sh:41`, `repo/run_tests.sh:46`, `repo/run_tests.sh:71`, `repo/run_tests.sh:76`).
@@ -191,7 +190,7 @@ Legend: `TNM` = true no-mock HTTP test, `N` = not covered.
 
 ## Tests Check
 
-- API route coverage: high but not complete (95/97).
+- API route coverage: high but not complete (96/97).
 - True no-mock API testing: strong.
 - Frontend unit layer: present and substantial.
 - E2E layer: present but selective.
@@ -204,15 +203,14 @@ Legend: `TNM` = true no-mock HTTP test, `N` = not covered.
 
 - - strong no-mock HTTP integration harness and broad auth/validation/error coverage.
 - - explicit frontend unit suite with real component/module imports.
-- - two uncovered API read endpoints.
+- - one uncovered API read endpoint.
 - - some console UI modules not directly unit-tested.
 - - a subset of endpoint invocations only asserted indirectly (cleanup-style calls).
 
 ## Key Gaps
 
 1. Missing direct tests for `GET /api/v1/coupons`.
-2. Missing direct tests for `GET /api/v1/pricing-rules/:id`.
-3. Missing direct frontend unit tests for several console pages (`ContentPage.vue`, `CrawlPage.vue`, `ComplaintsPage.vue`, `PricingPage.vue`, `AuditPage.vue`, `ApprovalsPage.vue`, `MonitoringPage.vue`).
+2. Missing direct frontend unit tests for several console pages (`ContentPage.vue`, `CrawlPage.vue`, `ComplaintsPage.vue`, `PricingPage.vue`, `AuditPage.vue`, `ApprovalsPage.vue`, `MonitoringPage.vue`).
 
 ## Confidence & Assumptions
 
