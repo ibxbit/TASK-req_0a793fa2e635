@@ -70,7 +70,9 @@ This report verifies whether the previously reported critical issues have been a
 
 - `FLOWS.md`, `README.md`: Document offline, queue, rollback, monitoring features, and test coverage.
 - `docs/design.md`, `docs/api-spec.md`: System architecture, API endpoints, security/compliance.
-- `docs/delivery_acceptance_project_architecture_audit_static_2026-04-19_r2.md`: Mapped evidence for all requirements.
+- `docs/design.md`: System architecture, ERD, state/workflow diagrams, and security/compliance overview.
+- `docs/api-spec.md`: Full API endpoint inventory with roles and response structures.
+- `docs/questions.md`: Business gaps, hypotheses, and implemented resolutions.
 
 ---
 

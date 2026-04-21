@@ -12,7 +12,7 @@ const open = ref(false)
 const items = ref([])
 
 async function refresh() {
-  items.value = (await listQueue()).sort((a, b) => a.created_at - b.created_at)
+  items.value = ((await listQueue()) ?? []).sort((a, b) => a.created_at - b.created_at)
 }
 
 let timer = null

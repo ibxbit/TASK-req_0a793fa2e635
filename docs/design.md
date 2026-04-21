@@ -39,4 +39,105 @@
 
 ---
 
-For detailed diagrams, see the ERD and architecture diagrams (to be added as images or mermaid diagrams).
+## 6. Architecture Diagram
+
+```mermaid
+graph TD
+    Client["Vue.js SPA (Browser)"]
+    SW["Service Worker"]
+    IDB["IndexedDB (Cache & Queue)"]
+    API["Go/Gin REST API"]
+    DB["MySQL Database"]
+    Crawler["Distributed Crawler"]
+
+    Client --> SW
+    SW --> IDB
+    Client -- "HTTP/REST" --> API
+    API --> DB
+    Crawler --> DB
+```
+
+## 7. ERD (Entity Relationship Diagram)
+
+```mermaid
+erDiagram
+    USERS {
+        int id PK
+        string username
+        string role
+        string password_hash
+    }
+    AUTHORS {
+        int id PK
+        string name
+        string bio
+    }
+    POEMS {
+        int id PK
+        string title
+        int author_id FK
+        string dynasty
+        text content
+    }
+    REVIEWS {
+        int id PK
+        int user_id FK
+        int item_id
+        int rating
+        text text
+    }
+    COMPLAINTS {
+        int id PK
+        int user_id FK
+        int item_id
+        string status
+        text notes_encrypted
+    }
+    PRICING_RULES {
+        int id PK
+        string name
+        decimal discount
+    }
+    COUPONS {
+        int id PK
+        string code
+        decimal discount
+        datetime expires_at
+    }
+    CAMPAIGNS {
+        int id PK
+        string name
+        datetime start_at
+        datetime end_at
+    }
+    ORDERS {
+        int id PK
+        int user_id FK
+        decimal total
+        string status
+    }
+    ENTITLEMENTS {
+        int id PK
+        int user_id FK
+        int item_id
+    }
+    AUDIT_LOGS {
+        int id PK
+        int user_id FK
+        string entity
+        int entity_id
+        json before
+        json after
+        datetime expires_at
+    }
+
+    USERS ||--o{ REVIEWS : writes
+    USERS ||--o{ COMPLAINTS : files
+    USERS ||--o{ ORDERS : places
+    USERS ||--o{ ENTITLEMENTS : owns
+    USERS ||--o{ AUDIT_LOGS : triggers
+    AUTHORS ||--o{ POEMS : authored
+    POEMS ||--o{ REVIEWS : receives
+    POEMS ||--o{ COMPLAINTS : receives
+    ORDERS ||--o{ ENTITLEMENTS : grants
+```

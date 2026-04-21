@@ -19,5 +19,3 @@
 ## Q: How to handle approval workflow for bulk edits?
 - Hypothesis: Require admin sign-off within 48 hours.
 - Solution: Bulk edits are pending until admin approval or auto-revert.
-
-(Add more as you discover gaps or ambiguities.)
